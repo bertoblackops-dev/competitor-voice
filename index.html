@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Competitor</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    select, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    textarea {
+      height: 250px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .recording {
+      background: #ddd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🎤 Add Competitor</h1>
+  <p>Speak your competitor information below.</p>
+
+  <label>Language:</label>
+
+  <select id="language">
+    <option value="en-US">English</option>
+    <option value="nl-NL">Dutch</option>
+  </select>
+
+  <button id="speakButton" onclick="startVoice()">
+    🎤 Start Speaking
+  </button>
+
+  <textarea id="inputText"
+    placeholder="Example: Store link https://example.com, Facebook ads 32, SimilarWeb visits 14000..."></textarea>
+
+  <button onclick="processAndSubmit()">
+    ➕ Add Competitor to Google Sheet
+  </button>
+
+  <div id="status"></div>
+
+  <iframe name="submitFrame" style="display:none;"></iframe>
+
+  <form
+    id="competitorForm"
+    action="https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec"
+    method="POST"
+    target="submitFrame">
+
+    <input type="hidden" name="storeLink" id="storeLink">
+    <input type="hidden" name="facebookAds" id="facebookAds">
+    <input type="hidden" name="similarWeb" id="similarWeb">
+    <input type="hidden" name="storeAge" id="storeAge">
+    <input type="hidden" name="foundThrough" id="foundThrough">
+    <input type="hidden" name="offer" id="offer">
+    <input type="hidden" name="notes" id="notes">
+    <input type="hidden" name="googleAds" id="googleAds">
+
+  </form>
+
+<script>
+
+let recognition;
+let isRecording = false;
+
+function startVoice() {
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    document.getElementById("status").innerText =
+      "Speech recognition is not supported. Please use Google Chrome.";
+    return;
+  }
+
+  if (isRecording) {
+    recognition.stop();
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+
+  recognition.lang =
+    document.getElementById("language").value;
+
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+
+    isRecording = true;
+
+    document.getElementById("speakButton").innerText =
+      "⏹ Stop Speaking";
+
+    document.getElementById("speakButton")
+      .classList.add("recording");
+
+    document.getElementById("status").innerText =
+      "🎤 Listening...";
+  };
+
+  recognition.onresult = function(event) {
+
+    let transcript = "";
+
+    for (
+      let i = event.resultIndex;
+      i < event.results.length;
+      i++
+    ) {
+
+      if (event.results[i].isFinal) {
+
+        transcript +=
+          event.results[i][0].transcript + " ";
+      }
+    }
+
+    if (transcript) {
+
+      const textarea =
+        document.getElementById("inputText");
+
+      textarea.value += transcript;
+    }
+  };
+
+  recognition.onerror = function(event) {
+
+    document.getElementById("status").innerText =
+      "Microphone error: " + event.error;
+  };
+
+  recognition.onend = function() {
+
+    isRecording = false;
+
+    document.getElementById("speakButton").innerText =
+      "🎤 Start Speaking";
+
+    document.getElementById("speakButton")
+      .classList.remove("recording");
+
+    document.getElementById("status").innerText =
+      "Speech captured. Check the text, then click Add Competitor.";
+  };
+
+  recognition.start();
+}
+
+
+function extractField(text, labels) {
+
+  const labelPattern =
+    labels.join("|");
+
+  const regex = new RegExp(
+    "(?:" +
+    labelPattern +
+    ")\\s*:?\\s*(.*?)(?=\\s*(?:Store link|Facebook ads|SimilarWeb|Store age|Found through|Offer|Bijzonderheden|Notes|Google ads)\\s*:|$)",
+    "is"
+  );
+
+  const match = text.match(regex);
+
+  return match ? match[1].trim() : "";
+}
+
+
+function extractNumber(value) {
+
+  if (!value) return "";
+
+  const kMatch = value.match(/([\d.,]+)\s*k/i);
+
+  if (kMatch) {
+
+    return Math.round(
+      parseFloat(kMatch[1].replace(",", ".")) * 1000
+    );
+  }
+
+  const match = value.match(/[\d][\d.,]*/);
+
+  if (!match) return "";
+
+  return Number(
+    match[0].replace(/,/g, "")
+  );
+}
+
+
+function processAndSubmit() {
+
+  const text =
+    document.getElementById("inputText").value;
+
+  if (!text.trim()) {
+
+    document.getElementById("status").innerText =
+      "Please speak something first.";
+
+    return;
+  }
+
+  const storeLink =
+    extractField(text, [
+      "Store link",
+      "Store URL",
+      "Website"
+    ]);
+
+  const facebookAds =
+    extractNumber(
+      extractField(text, [
+        "Facebook ads live",
+        "Facebook live ads",
+        "Facebook ads"
+      ])
+    );
+
+  const similarWeb =
+    extractNumber(
+      extractField(text, [
+        "SimilarWeb visitors",
+        "SimilarWeb visits",
+        "SimilarWeb"
+      ])
+    );
+
+  const storeAge =
+    extractField(text, [
+      "Store age"
+    ]);
+
+  const foundThrough =
+    extractField(text, [
+      "Found through"
+    ]);
+
+  const offer =
+    extractField(text, [
+      "Offer"
+    ]);
+
+  const notes =
+    extractField(text, [
+      "Bijzonderheden",
+      "Notes",
+      "Details"
+    ]);
+
+  const googleAds =
+    extractNumber(
+      extractField(text, [
+        "Google ads",
+        "Google ads qty"
+      ])
+    );
+
+  document.getElementById("storeLink").value =
+    storeLink;
+
+  document.getElementById("facebookAds").value =
+    facebookAds;
+
+  document.getElementById("similarWeb").value =
+    similarWeb;
+
+  document.getElementById("storeAge").value =
+    storeAge;
+
+  document.getElementById("foundThrough").value =
+    foundThrough;
+
+  document.getElementById("offer").value =
+    offer;
+
+  document.getElementById("notes").value =
+    notes;
+
+  document.getElementById("googleAds").value =
+    googleAds;
+
+  document.getElementById("status").innerText =
+    "⏳ Adding competitor to Google Sheet...";
+
+  document.getElementById("competitorForm").submit();
+
+  setTimeout(function() {
+
+    document.getElementById("status").innerText =
+      "✅ Competitor sent to Google Sheet.";
+
+  }, 1500);
+}
+
+</script>
+
+</body>
+</html>
