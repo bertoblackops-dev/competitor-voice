@@ -15,7 +15,7 @@
     }
 
     h1 {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     button {
@@ -25,6 +25,11 @@
       margin: 6px 6px 6px 0;
       border-radius: 6px;
       border: 1px solid #999;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     textarea {
@@ -80,7 +85,7 @@
 <h1>🎤 Competitor Voice</h1>
 
 <p class="hint">
-  Speak your competitor information naturally. Check the fields before adding it to Google Sheets.
+  Speak naturally. You don't need to use exact labels.
 </p>
 
 <label>
@@ -147,7 +152,9 @@
 
   <br>
 
-  <button onclick="processSpeech()">🔄 Structure Information</button>
+  <button onclick="processSpeech()">
+    🔄 Structure Information
+  </button>
 
   <button onclick="submitToSheet()">
     ➕ Add Competitor to Google Sheet
@@ -188,9 +195,9 @@ let recognition = null;
 let listening = false;
 
 
-/* =========================
-   SPEECH RECOGNITION
-========================= */
+/* =====================================================
+   SPEECH
+===================================================== */
 
 function startListening() {
 
@@ -225,21 +232,13 @@ function startListening() {
         newText +=
           event.results[i][0].transcript + " ";
       }
-
     }
 
-    const box =
-      document.getElementById("transcript");
-
-    box.value += newText;
+    document.getElementById("transcript").value += newText;
   };
 
   recognition.onerror = function(event) {
-
-    console.log(
-      "Speech recognition error:",
-      event.error
-    );
+    console.log("Speech error:", event.error);
   };
 
   recognition.onend = function() {
@@ -248,9 +247,7 @@ function startListening() {
 
       try {
         recognition.start();
-      } catch (error) {
-        console.log(error);
-      }
+      } catch (e) {}
 
     }
   };
@@ -259,9 +256,7 @@ function startListening() {
 
   try {
     recognition.start();
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (e) {}
 
   document.getElementById("status").innerText =
     "🎤 Listening...";
@@ -283,9 +278,9 @@ function stopListening() {
 }
 
 
-/* =========================
-   BASIC CLEANING
-========================= */
+/* =====================================================
+   GENERAL CLEANING
+===================================================== */
 
 function cleanText(text) {
 
@@ -295,30 +290,40 @@ function cleanText(text) {
 }
 
 
-/* =========================
-   SPEECH NORMALIZATION
-========================= */
+function normalizeNumber(value) {
+
+  if (!value) return "";
+
+  return value
+    .replace(/,/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+}
+
+
+/* =====================================================
+   SPEECH CORRECTIONS
+===================================================== */
 
 function normalizeSpeech(text) {
 
   text = cleanText(text);
 
 
-  /* URL */
+  /* ---------------- URLS ---------------- */
 
   text = text.replace(
     /\bhttps?\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
     "https://$1"
   );
 
-
   text = text.replace(
-    /\bhttps\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
-    "https://$1"
+    /\bwww\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
+    "www.$1"
   );
 
 
-  /* FACEBOOK ADS */
+  /* ---------------- FACEBOOK ---------------- */
 
   text = text.replace(
     /facebook\s+ads?\s*live\s*(\d[\d,.]*)/gi,
@@ -330,279 +335,464 @@ function normalizeSpeech(text) {
     "Facebook ads live: $1"
   );
 
-
-  /* SIMILARWEB */
+  text = text.replace(
+    /(\d[\d,.]*)\s+(?:active|live|running)\s+facebook\s+ads?/gi,
+    "Facebook ads live: $1"
+  );
 
   text = text.replace(
-    /similar\s*web\s+visitors?\s*([\d,.]+)/gi,
-    "SimilarWeb visitors: $1"
+    /facebook\s+(?:has|shows|is\s+running)\s+(\d[\d,.]*)\s+ads?/gi,
+    "Facebook ads live: $1"
   );
 
 
-  /* STORE AGE */
+  /* ---------------- SIMILARWEB ---------------- */
+
+  text = text.replace(
+    /similar\s*web\s+(?:visitors?|visits?|traffic)\s*:?\s*([\d,.]+)/gi,
+    "SimilarWeb visits: $1"
+  );
+
+  text = text.replace(
+    /(?:about|around|roughly)\s+([\d,.]+)\s+(?:similar\s*web\s+)?(?:visits?|visitors?)/gi,
+    "SimilarWeb visits: $1"
+  );
+
+  text = text.replace(
+    /([\d,.]+)\s+(?:similar\s*web\s+)?(?:visits?|visitors?)/gi,
+    "SimilarWeb visits: $1"
+  );
+
+
+  /* ---------------- STORE AGE ---------------- */
 
   text = text.replace(
     /store\s+(?:age|edge|h)\s*(\d+\s*(?:months?|years?))/gi,
     "Store age: $1"
   );
 
+  text = text.replace(
+    /(?:store|website|shop)\s+(?:is\s+)?(?:about|around|roughly|approximately)?\s*(\d+\s*(?:months?|years?))\s+old/gi,
+    "Store age: $1"
+  );
 
-  /* FACEBOOK AD LIBRARY */
+  text = text.replace(
+    /(?:about|around|roughly|approximately)\s*(\d+\s*(?:months?|years?))\s+old/gi,
+    "Store age: $1"
+  );
+
+
+  /* ---------------- AD LIBRARY ---------------- */
 
   text = text.replace(
     /facebook\s+(?:at|ad)\s+library(?:\s+the)?/gi,
     "Facebook Ad Library"
   );
 
+  text = text.replace(
+    /(?:found|discovered|came\s+across)\s+(?:it\s+)?(?:through|on|via)\s+facebook\s+(?:ad\s+)?library/gi,
+    "Found through: Facebook Ad Library"
+  );
 
-  /* OFFER */
+
+  /* ---------------- OFFERS ---------------- */
 
   text = text.replace(
-    /(?:the\s+)?offer(?:ed)?\s+by\s+two\s+get\s+one\s+free/gi,
+    /(?:the\s+)?offer(?:ed)?\s+(?:is\s+)?(?:buy\s+)?two\s+get\s+one\s+free/gi,
     "Offer: Buy 2 Get 1 Free"
   );
 
   text = text.replace(
-    /(?:the\s+)?offer(?:ed)?\s*:?\s*two\s+get\s+one\s+free/gi,
+    /(?:the\s+)?offer(?:ed)?\s+(?:is\s+)?(?:buy\s+)?2\s+get\s+1\s+free/gi,
     "Offer: Buy 2 Get 1 Free"
   );
 
   text = text.replace(
-    /(?:the\s+)?offer(?:ed)?\s*:?\s*by\s+two\s+get\s+one\s+free/gi,
+    /(?:deal|promotion|promo)\s*:?\s*(?:buy\s+)?two\s+get\s+one\s+free/gi,
+    "Offer: Buy 2 Get 1 Free"
+  );
+
+  text = text.replace(
+    /(?:deal|promotion|promo)\s*:?\s*(?:buy\s+)?2\s+get\s+1\s+free/gi,
     "Offer: Buy 2 Get 1 Free"
   );
 
 
-  /* NOTES */
+  /* ---------------- NOTES ---------------- */
 
   text = text.replace(
     /\bnodes?\s+/gi,
     "Notes: "
   );
 
-
-  /* COMMON SPEECH ERRORS */
-
   text = text.replace(
-    /\bgood\s+lending\s+page\b/gi,
-    "good landing page"
+    /\b(?:note|notes|details|detail|remark|remarks)\s*:?\s*/gi,
+    "Notes: "
   );
 
 
-  return text;
+  /* Speech recognition corrections */
+
+  text = text.replace(
+    /\blending\s+page\b/gi,
+    "landing page"
+  );
+
+  text = text.replace(
+    /\blending\b/gi,
+    "landing"
+  );
+
+
+  return cleanText(text);
 }
 
 
-/* =========================
-   STRUCTURE THE SPEECH
-========================= */
+/* =====================================================
+   FIELD HELPERS
+===================================================== */
+
+function setField(id, value) {
+
+  if (value !== undefined && value !== null) {
+
+    value = cleanText(value);
+
+    if (value !== "") {
+      document.getElementById(id).value = value;
+    }
+  }
+}
+
+
+function getNumberAfter(pattern, text) {
+
+  const match = text.match(pattern);
+
+  if (!match) return "";
+
+  return normalizeNumber(match[1]);
+}
+
+
+/* =====================================================
+   MAIN PARSER
+===================================================== */
 
 function processSpeech() {
 
-  let text =
+  let original =
     document.getElementById("transcript").value;
 
-  text = normalizeSpeech(text);
+  let text =
+    normalizeSpeech(original);
 
   document.getElementById("transcript").value =
     text;
 
 
-  /* STORE LINK */
+  /* ===================================================
+     STORE LINK
+  =================================================== */
 
-  let match = text.match(
-    /https?:\/\/[^\s]+/i
-  );
-
-  if (match) {
-
-    document.getElementById("storeLink").value =
-      match[0].replace(/[.,]$/, "");
-  }
-
-
-  /* FACEBOOK ADS */
-
-  match = text.match(
-    /facebook\s+ads?\s*live\s*:?\s*(\d[\d,.]*)/i
-  );
-
-  if (match) {
-
-    document.getElementById("facebookAds").value =
-      match[1].replace(/,/g, "");
-  }
-
-
-  /* SIMILARWEB */
-
-  match = text.match(
-    /similarweb\s+visitors\s*:?\s*(\d[\d,.]*)/i
-  );
-
-  if (match) {
-
-    document.getElementById("similarWeb").value =
-      match[1].replace(/,/g, "");
-  }
-
-
-  /* STORE AGE */
-
-  match = text.match(
-    /store\s+age\s*:?\s*(\d+\s*(?:months?|years?))/i
-  );
-
-  if (match) {
-
-    document.getElementById("storeAge").value =
-      match[1].trim();
-  }
-
-
-  /* FOUND THROUGH */
-
-  match = text.match(
-    /found\s+through\s*:?\s*(.*?)(?=\s+(?:offer|notes?|google\s+ads)\b|$)/i
-  );
-
-  if (match) {
-
-    let found = match[1].trim();
-
-    found = found.replace(
-      /\s+the$/i,
-      ""
+  let urlMatch =
+    text.match(
+      /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/i
     );
 
-    found = found.replace(
-      /facebook\s+(?:at|ad)\s+library/i,
-      "Facebook Ad Library"
-    );
+  if (urlMatch) {
 
-    document.getElementById("foundThrough").value =
-      found;
+    let url = urlMatch[0]
+      .replace(/[.,!?]$/, "");
+
+    if (url.startsWith("www.")) {
+      url = "https://" + url;
+    }
+
+    setField("storeLink", url);
   }
 
 
-  /* OFFER */
+  /* ===================================================
+     FACEBOOK ADS
+  =================================================== */
 
-  match = text.match(
-    /offer\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads)\b|$)/i
-  );
+  let facebook =
+    getNumberAfter(
+      /facebook\s+ads?\s*live\s*:?\s*(\d[\d,.]*)/i,
+      text
+    );
 
-  if (match) {
+  if (!facebook) {
+
+    facebook =
+      getNumberAfter(
+        /(\d[\d,.]*)\s+(?:active|live|running)\s+facebook\s+ads?/i,
+        text
+      );
+  }
+
+  setField("facebookAds", facebook);
+
+
+  /* ===================================================
+     SIMILARWEB
+  =================================================== */
+
+  let similarWeb =
+    getNumberAfter(
+      /similarweb\s+(?:visits?|visitors?|traffic)\s*:?\s*(\d[\d,.]*)/i,
+      text
+    );
+
+  if (!similarWeb) {
+
+    similarWeb =
+      getNumberAfter(
+        /(?:about|around|roughly)?\s*(\d[\d,.]*)\s+(?:similarweb\s+)?(?:visits?|visitors?)/i,
+        text
+      );
+  }
+
+  setField("similarWeb", similarWeb);
+
+
+  /* ===================================================
+     STORE AGE
+  =================================================== */
+
+  let ageMatch =
+    text.match(
+      /store\s+age\s*:?\s*(\d+\s*(?:months?|years?))/i
+    );
+
+  if (!ageMatch) {
+
+    ageMatch =
+      text.match(
+        /(?:store|website|shop)\s+(?:is\s+)?(?:about|around|roughly|approximately)?\s*(\d+\s*(?:months?|years?))\s+old/i
+      );
+  }
+
+  if (!ageMatch) {
+
+    ageMatch =
+      text.match(
+        /(?:about|around|roughly|approximately)\s*(\d+\s*(?:months?|years?))\s+old/i
+      );
+  }
+
+  if (ageMatch) {
+    setField("storeAge", ageMatch[1]);
+  }
+
+
+  /* ===================================================
+     FOUND THROUGH
+  =================================================== */
+
+  let foundMatch =
+    text.match(
+      /found\s+through\s*:?\s*(.*?)(?=\s+(?:offer|deal|promotion|promo|notes?|google\s+ads?)\b|$)/i
+    );
+
+  if (!foundMatch) {
+
+    foundMatch =
+      text.match(
+        /(?:found|discovered|came\s+across)\s+(?:it\s+)?(?:through|on|via)\s+(.*?)(?=\s+(?:offer|deal|promotion|promo|notes?|google\s+ads?)\b|$)/i
+      );
+  }
+
+  if (foundMatch) {
+
+    let found =
+      foundMatch[1].trim();
+
+    found = found
+      .replace(/\s+the$/i, "")
+      .replace(
+        /facebook\s+(?:at|ad)\s+library/i,
+        "Facebook Ad Library"
+      );
+
+    if (/facebook.*library/i.test(found)) {
+      found = "Facebook Ad Library";
+    }
+
+    setField("foundThrough", found);
+  }
+
+
+  /* ===================================================
+     OFFER
+  =================================================== */
+
+  let offerMatch =
+    text.match(
+      /offer\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads?)\b|$)/i
+    );
+
+  if (!offerMatch) {
+
+    offerMatch =
+      text.match(
+        /(?:deal|promotion|promo)\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads?)\b|$)/i
+      );
+  }
+
+  if (offerMatch) {
 
     let offer =
-      match[1].trim();
+      offerMatch[1]
+        .trim()
+        .replace(/^buy\s+/i, "")
+        .replace(/^by\s+/i, "");
 
-    offer = offer.replace(
-      /^buy\s+/i,
-      ""
-    );
+    if (
+      /two\s+get\s+one\s+free/i.test(offer) ||
+      /2\s+get\s+1\s+free/i.test(offer)
+    ) {
 
-    offer = offer.replace(
-      /two\s+get\s+one/gi,
-      "2 Get 1"
-    );
-
-    offer = offer.replace(
-      /2\s+get\s+1/gi,
-      "2 Get 1"
-    );
-
-    offer = offer.replace(
-      /\s+/g,
-      " "
-    );
-
-    if (/2\s+get\s+1/i.test(offer)) {
-
-      document.getElementById("offer").value =
-        "Buy 2 Get 1 Free";
+      offer = "Buy 2 Get 1 Free";
 
     } else {
 
-      document.getElementById("offer").value =
-        offer;
+      offer = offer
+        .replace(
+          /two\s+get\s+one/gi,
+          "2 Get 1"
+        )
+        .replace(
+          /\s+/g,
+          " "
+        );
     }
+
+    setField("offer", offer);
   }
 
 
-  /* NOTES */
+  /* ===================================================
+     NOTES
+  =================================================== */
 
-  match = text.match(
-    /notes?\s*:?\s*(.*?)(?=\s+google\s+ads\b|$)/i
-  );
-
-  if (match) {
-
-    let notes =
-      match[1].trim();
-
-    notes = notes.replace(
-      /\blending\s+page\b/gi,
-      "landing page"
+  let notesMatch =
+    text.match(
+      /notes?\s*:?\s*(.*?)(?=\s+google\s+ads?\b|$)/i
     );
 
-    document.getElementById("notes").value =
-      notes;
+  if (!notesMatch) {
+
+    notesMatch =
+      text.match(
+        /(?:detail|details|remark|remarks)\s*:?\s*(.*?)(?=\s+google\s+ads?\b|$)/i
+      );
+  }
+
+  if (notesMatch) {
+
+    let notes =
+      notesMatch[1]
+        .trim()
+        .replace(
+          /\blending\s+page\b/gi,
+          "landing page"
+        );
+
+    setField("notes", notes);
   }
 
 
-  /* GOOGLE ADS */
+  /* ===================================================
+     GOOGLE ADS
+  =================================================== */
 
-  match = text.match(
-    /google\s+ads\s*:?\s*(\d[\d,.]*)/i
-  );
+  let googleAds =
+    getNumberAfter(
+      /google\s+ads?\s*:?\s*(\d[\d,.]*)/i,
+      text
+    );
 
-  if (match) {
+  if (!googleAds) {
 
-    document.getElementById("googleAds").value =
-      match[1].replace(/,/g, "");
+    googleAds =
+      getNumberAfter(
+        /(\d[\d,.]*)\s+(?:active|live|running)?\s*google\s+ads?/i,
+        text
+      );
   }
+
+  setField("googleAds", googleAds);
 
 
   document.getElementById("status").innerText =
-    "✅ Information structured. Check the fields above.";
+    "✅ Information structured. Check the fields before adding.";
 }
 
 
-/* =========================
-   SEND EXACTLY ONE ROW
-========================= */
+/* =====================================================
+   SUBMIT
+===================================================== */
 
 function submitToSheet() {
 
   processSpeech();
 
 
+  const values = {
+    storeLink:
+      document.getElementById("storeLink").value.trim(),
+
+    facebookAds:
+      document.getElementById("facebookAds").value.trim(),
+
+    similarWeb:
+      document.getElementById("similarWeb").value.trim(),
+
+    storeAge:
+      document.getElementById("storeAge").value.trim(),
+
+    foundThrough:
+      document.getElementById("foundThrough").value.trim(),
+
+    offer:
+      document.getElementById("offer").value.trim(),
+
+    notes:
+      document.getElementById("notes").value.trim(),
+
+    googleAds:
+      document.getElementById("googleAds").value.trim()
+  };
+
+
+  /* Put exactly these 8 values into the form */
+
   document.getElementById("formStoreLink").value =
-    document.getElementById("storeLink").value.trim();
+    values.storeLink;
 
   document.getElementById("formFacebookAds").value =
-    document.getElementById("facebookAds").value.trim();
+    values.facebookAds;
 
   document.getElementById("formSimilarWeb").value =
-    document.getElementById("similarWeb").value.trim();
+    values.similarWeb;
 
   document.getElementById("formStoreAge").value =
-    document.getElementById("storeAge").value.trim();
+    values.storeAge;
 
   document.getElementById("formFoundThrough").value =
-    document.getElementById("foundThrough").value.trim();
+    values.foundThrough;
 
   document.getElementById("formOffer").value =
-    document.getElementById("offer").value.trim();
+    values.offer;
 
   document.getElementById("formNotes").value =
-    document.getElementById("notes").value.trim();
+    values.notes;
 
   document.getElementById("formGoogleAds").value =
-    document.getElementById("googleAds").value.trim();
+    values.googleAds;
 
-
-  /* Prevent accidental double-click */
 
   const button =
     document.querySelector(
@@ -621,7 +811,7 @@ function submitToSheet() {
   setTimeout(function() {
 
     document.getElementById("status").innerText =
-      "✅ Competitor sent to Google Sheet.";
+      "✅ Competitor added to Google Sheet.";
 
     button.disabled = false;
 
