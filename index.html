@@ -209,6 +209,8 @@ async function startListening() {
     };
 
     mediaRecorder.onstop = async function() {
+      alert("STOP EVENT FIRED");
+      
       stream.getTracks().forEach(track => track.stop());
 
       const audioBlob = new Blob(audioChunks, {
