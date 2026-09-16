@@ -3,79 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Competitor Voice</title>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 760px;
+      max-width: 800px;
       margin: 40px auto;
       padding: 20px;
-      line-height: 1.4;
     }
 
     h1 {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     button {
       padding: 12px 18px;
-      font-size: 16px;
+      margin: 5px 5px 10px 0;
       cursor: pointer;
-      margin: 6px 6px 6px 0;
       border-radius: 6px;
-      border: 1px solid #999;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    button:hover {
+      background: #e8e8e8;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      margin: 6px 0 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
     }
 
     textarea {
-      width: 100%;
-      min-height: 170px;
-      margin-top: 15px;
-      padding: 12px;
-      font-size: 16px;
-      box-sizing: border-box;
-      border-radius: 6px;
+      min-height: 150px;
+      resize: vertical;
     }
 
-    #structured {
-      margin-top: 25px;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    .field {
-      margin-top: 14px;
-    }
-
-    .field label {
-      display: block;
+    label {
       font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .field input {
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-      font-size: 15px;
-      border: 1px solid #aaa;
-      border-radius: 5px;
+      display: block;
+      margin-top: 10px;
     }
 
     #status {
-      margin-top: 18px;
+      margin: 15px 0;
       font-weight: bold;
     }
 
-    .hint {
-      color: #666;
-      font-size: 14px;
+    .field {
+      margin-bottom: 8px;
+    }
+
+    iframe {
+      display: none;
     }
   </style>
 </head>
@@ -84,220 +73,359 @@
 
 <h1>🎤 Competitor Voice</h1>
 
-<p class="hint">
-  Speak naturally or use the field names from the sheet.
-</p>
+<label for="language">Language</label>
 
-<label>
-  Language:
-  <select id="language">
-    <option value="en-US">English</option>
-    <option value="nl-NL">Dutch</option>
-  </select>
-</label>
+<select id="language">
+  <option value="en">English</option>
+  <option value="nl">Dutch</option>
+</select>
 
-<br><br>
+<br>
 
 <button onclick="startListening()">🎤 Start Speaking</button>
-<button onclick="stopListening()">⏹ Stop</button>
+<button onclick="stopListening()">⏹ Stop Speaking</button>
+
+<div id="status">Ready.</div>
+
+<label for="transcript">Transcript</label>
 
 <textarea
   id="transcript"
-  placeholder="Your speech will appear here..."
+  placeholder="Your spoken information will appear here..."
 ></textarea>
 
-<div id="structured">
+<button onclick="processSpeech()">🧠 Structure Information</button>
 
-  <h2>Check before adding</h2>
+<hr>
 
-  <div class="field">
-    <label>Store Link</label>
-    <input id="storeLink">
-  </div>
-
-  <div class="field">
-    <label>Facebook Live Ads Qty</label>
-    <input id="facebookAds">
-  </div>
-
-  <div class="field">
-    <label>SimilarWeb Visits</label>
-    <input id="similarWeb">
-  </div>
-
-  <div class="field">
-    <label>Store Age</label>
-    <input id="storeAge">
-  </div>
-
-  <div class="field">
-    <label>Found Through</label>
-    <input id="foundThrough">
-  </div>
-
-  <div class="field">
-    <label>Offer</label>
-    <input id="offer">
-  </div>
-
-  <div class="field">
-    <label>Notes</label>
-    <input id="notes">
-  </div>
-
-  <div class="field">
-    <label>Google Ads Qty</label>
-    <input id="googleAds">
-  </div>
-
-  <br>
-
-  <button onclick="processSpeech()">
-    🔄 Structure Information
-  </button>
-
-  <button onclick="submitToSheet()">
-    ➕ Add Competitor to Google Sheet
-  </button>
-
-  <div id="status"></div>
-
+<div class="field">
+  <label>Store Link</label>
+  <input id="storeLink">
 </div>
 
-<iframe
-  name="submitFrame"
-  id="submitFrame"
-  style="display:none;"
-></iframe>
+<div class="field">
+  <label>Facebook Live Ads Qty</label>
+  <input id="facebookAds">
+</div>
 
-<form
-  id="sheetForm"
-  method="POST"
-  target="submitFrame"
-  action="https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec"
-  style="display:none;"
->
+<div class="field">
+  <label>SimilarWeb Visits</label>
+  <input id="similarWeb">
+</div>
 
-  <input name="storeLink" id="formStoreLink">
-  <input name="facebookAds" id="formFacebookAds">
-  <input name="similarWeb" id="formSimilarWeb">
-  <input name="storeAge" id="formStoreAge">
-  <input name="foundThrough" id="formFoundThrough">
-  <input name="offer" id="formOffer">
-  <input name="notes" id="formNotes">
-  <input name="googleAds" id="formGoogleAds">
+<div class="field">
+  <label>Store Age</label>
+  <input id="storeAge">
+</div>
 
-</form>
+<div class="field">
+  <label>Found Through</label>
+  <input id="foundThrough">
+</div>
+
+<div class="field">
+  <label>Offer</label>
+  <input id="offer">
+</div>
+
+<div class="field">
+  <label>Notes</label>
+  <input id="notes">
+</div>
+
+<div class="field">
+  <label>Google Ads Qty</label>
+  <input id="googleAds">
+</div>
+
+<button onclick="submitToSheet()">➕ Add Competitor to Google Sheet</button>
+
+<!-- Hidden communication iframe -->
+<iframe name="transcriptionFrame" id="transcriptionFrame"></iframe>
 
 <script>
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec";
+
+const SHEET_NAME = "Sheet1";
 
 let mediaRecorder = null;
 let audioChunks = [];
 let listening = false;
 
+
+/* =====================================================
+   RECORD AUDIO
+===================================================== */
+
 async function startListening() {
+
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    audioChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-
-    mediaRecorder.ondataavailable = function(event) {
-      if (event.data.size > 0) {
-        audioChunks.push(event.data);
-      }
-    };
-
-    mediaRecorder.onstop = async function() {
-      alert("STOP EVENT FIRED");
-      
-      stream.getTracks().forEach(track => track.stop());
-
-      const audioBlob = new Blob(audioChunks, {
-        type: mediaRecorder.mimeType || "audio/webm"
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true
       });
 
-      document.getElementById("status").innerText =
-        "⏳ Transcribing with AI...";
+    audioChunks = [];
 
-      try {
-        const base64Audio = await blobToBase64(audioBlob);
+    mediaRecorder =
+      new MediaRecorder(stream);
 
-       const response = await fetch(
-  "https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      action: "transcribe",
-              audio: base64Audio,
-              mimeType: audioBlob.type
-            })
-          }
-        );
+    mediaRecorder.ondataavailable =
+      function(event) {
 
-        const result = await response.json();
-
-        if (result.error) {
-          throw new Error(result.error);
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
         }
 
-        document.getElementById("transcript").value +=
-          (result.text || "") + " ";
+      };
+
+
+    mediaRecorder.onstop =
+      async function() {
+
+        alert("STOP EVENT FIRED");
+
+        stream.getTracks().forEach(
+          track => track.stop()
+        );
+
+        const audioBlob =
+          new Blob(audioChunks, {
+            type:
+              mediaRecorder.mimeType ||
+              "audio/webm"
+          });
+
 
         document.getElementById("status").innerText =
-          "✅ Transcription complete.";
+          "⏳ Transcribing with AI...";
 
-      } catch (error) {
-        console.error(error);
-        document.getElementById("status").innerText =
-          "❌ Transcription failed: " + error.message;
-      }
-    };
+
+        try {
+
+          const base64Audio =
+            await blobToBase64(audioBlob);
+
+
+          /*
+             Instead of fetch(), submit a normal HTML form
+             to a hidden iframe.
+
+             This avoids the CORS preflight problem.
+          */
+
+          submitAudioForTranscription(
+            base64Audio,
+            audioBlob.type
+          );
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          document.getElementById("status").innerText =
+            "❌ Transcription failed: " +
+            error.message;
+
+        }
+
+      };
+
 
     mediaRecorder.start();
+
     listening = true;
 
     document.getElementById("status").innerText =
       "🎤 Recording... Click Stop when finished.";
 
-  } catch (error) {
-    console.error(error);
-    document.getElementById("status").innerText =
-      "❌ Microphone error: " + error.message;
   }
+
+  catch (error) {
+
+    console.error(error);
+
+    document.getElementById("status").innerText =
+      "❌ Microphone error: " +
+      error.message;
+
+  }
+
 }
+
 
 function stopListening() {
+
   listening = false;
 
-  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+  if (
+    mediaRecorder &&
+    mediaRecorder.state !== "inactive"
+  ) {
+
     mediaRecorder.stop();
+
   }
+
 }
-
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onloadend = function() {
-      const base64 = reader.result.split(",")[1];
-      resolve(base64);
-    };
-
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-
-
 
 
 /* =====================================================
-   GENERAL CLEANING
+   CONVERT AUDIO TO BASE64
+===================================================== */
+
+function blobToBase64(blob) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const reader =
+        new FileReader();
+
+      reader.onloadend =
+        function() {
+
+          const base64 =
+            reader.result.split(",")[1];
+
+          resolve(base64);
+
+        };
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(blob);
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   SEND AUDIO TO APPS SCRIPT WITHOUT CORS FETCH
+===================================================== */
+
+function submitAudioForTranscription(
+  base64Audio,
+  mimeType
+) {
+
+  const form =
+    document.createElement("form");
+
+  form.method = "POST";
+
+  form.action = APPS_SCRIPT_URL;
+
+  form.target = "transcriptionFrame";
+
+  form.style.display = "none";
+
+
+  const action =
+    document.createElement("input");
+
+  action.type = "hidden";
+
+  action.name = "action";
+
+  action.value = "transcribe";
+
+
+  const audio =
+    document.createElement("input");
+
+  audio.type = "hidden";
+
+  audio.name = "audio";
+
+  audio.value = base64Audio;
+
+
+  const mime =
+    document.createElement("input");
+
+  mime.type = "hidden";
+
+  mime.name = "mimeType";
+
+  mime.value = mimeType;
+
+
+  form.appendChild(action);
+
+  form.appendChild(audio);
+
+  form.appendChild(mime);
+
+
+  document.body.appendChild(form);
+
+  form.submit();
+
+  form.remove();
+
+}
+
+
+/* =====================================================
+   RECEIVE TRANSCRIPTION FROM APPS SCRIPT
+===================================================== */
+
+window.addEventListener(
+  "message",
+  function(event) {
+
+    if (!event.data) {
+      return;
+    }
+
+    if (
+      event.data.type ===
+      "competitor-transcription"
+    ) {
+
+      if (event.data.error) {
+
+        document.getElementById(
+          "status"
+        ).innerText =
+          "❌ Transcription failed: " +
+          event.data.error;
+
+        return;
+      }
+
+
+      const text =
+        event.data.text || "";
+
+
+      document.getElementById(
+        "transcript"
+      ).value +=
+        text + " ";
+
+
+      document.getElementById(
+        "status"
+      ).innerText =
+        "✅ Transcription complete.";
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   CLEAN TEXT
 ===================================================== */
 
 function cleanText(text) {
@@ -305,691 +433,394 @@ function cleanText(text) {
   return text
     .replace(/\s+/g, " ")
     .trim();
+
 }
 
+
+/* =====================================================
+   NUMBER NORMALIZATION
+===================================================== */
 
 function normalizeNumber(value) {
 
-  if (!value) return "";
-
-  return value
-    .replace(/,/g, "")
-    .replace(/\./g, function(match, offset, string) {
-
-      /*
-        Keep decimal points only when they are
-        between digits.
-      */
-      if (
-        offset > 0 &&
-        offset < string.length - 1 &&
-        /\d/.test(string[offset - 1]) &&
-        /\d/.test(string[offset + 1])
-      ) {
-        return ".";
-      }
-
-      return "";
-    })
-    .replace(/\s+/g, "")
-    .trim();
-}
-
-
-/* =====================================================
-   SPEECH CORRECTIONS
-===================================================== */
-
-function normalizeSpeech(text) {
-
-  text = cleanText(text);
-
-
-  /* ===================================================
-     COMMON CHROME SPEECH ERRORS
-  =================================================== */
-
-  text = text.replace(
-    /\bstore\s+edge\b/gi,
-    "Store age"
-  );
-
-  text = text.replace(
-    /\bfound\s+true\b/gi,
-    "Found through"
-  );
-
-  text = text.replace(
-    /\bgoogle\s+ads?\s+quantity\b/gi,
-    "Google ads"
-  );
-
-  text = text.replace(
-    /\bfacebook\s+live\s+(?:at|ad)\s+quantity\b/gi,
-    "Facebook ads live"
-  );
-
-  text = text.replace(
-    /\bfacebook\s+live\s+ads?\s+quantity\b/gi,
-    "Facebook ads live"
-  );
-
-  text = text.replace(
-    /\bsimilar\s+web\b/gi,
-    "SimilarWeb"
-  );
-
-  text = text.replace(
-    /\bnodes?\b/gi,
-    "Notes"
-  );
-
-  text = text.replace(
-    /\blending\s+page\b/gi,
-    "landing page"
-  );
-
-  text = text.replace(
-    /\blending\b/gi,
-    "landing"
-  );
-
-
-  /* ===================================================
-     URLS
-  =================================================== */
-
-  text = text.replace(
-    /\bhttps?\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
-    "https://$1"
-  );
-
-  text = text.replace(
-    /\bhttps?\s*:\s*\/\s*\/\s*([a-z0-9.-]+\.[a-z]{2,})/gi,
-    "https://$1"
-  );
-
-  text = text.replace(
-    /\bwww\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
-    "www.$1"
-  );
-
-
-  /* ===================================================
-     FACEBOOK ADS
-  =================================================== */
-
-  text = text.replace(
-    /facebook\s+adslive\s*(\d[\d,.]*)/gi,
-    "Facebook ads live: $1"
-  );
-
-  text = text.replace(
-    /facebook\s+ads?\s+live\s*:?\s*(\d[\d,.]*)/gi,
-    "Facebook ads live: $1"
-  );
-
-  text = text.replace(
-    /facebook\s+live\s+ads?\s*:?\s*(\d[\d,.]*)/gi,
-    "Facebook ads live: $1"
-  );
-
-  text = text.replace(
-    /(\d[\d,.]*)\s+(?:active|live|running)\s+facebook\s+ads?/gi,
-    "Facebook ads live: $1"
-  );
-
-  text = text.replace(
-    /facebook\s+(?:has|shows|is\s+running)\s+(\d[\d,.]*)\s+ads?/gi,
-    "Facebook ads live: $1"
-  );
-
-  text = text.replace(
-    /facebook\s+ads?\s+(?:quantity|qty)\s*:?\s*(\d[\d,.]*)/gi,
-    "Facebook ads live: $1"
-  );
-
-
-  /* ===================================================
-     SIMILARWEB
-  =================================================== */
-
-  text = text.replace(
-    /similarweb\s+(?:visitors?|visits?|traffic)\s*:?\s*([\d,.]+)/gi,
-    "SimilarWeb visits: $1"
-  );
-
-  text = text.replace(
-    /similarweb\s+(?:visitors?|visits?|traffic)\s+(?:is|are|shows?)\s+([\d,.]+)/gi,
-    "SimilarWeb visits: $1"
-  );
-
-  text = text.replace(
-    /(?:about|around|roughly|approximately)\s+([\d,.]+)\s+(?:similarweb\s+)?(?:visits?|visitors?)/gi,
-    "SimilarWeb visits: $1"
-  );
-
-  text = text.replace(
-    /([\d,.]+)\s+(?:similarweb\s+)?(?:visits?|visitors?)/gi,
-    "SimilarWeb visits: $1"
-  );
-
-  text = text.replace(
-    /similarweb\s+(?:visits?|visitors?)\s+(?:quantity|qty)\s*:?\s*([\d,.]+)/gi,
-    "SimilarWeb visits: $1"
-  );
-
-
-  /* ===================================================
-     STORE AGE
-  =================================================== */
-
-  text = text.replace(
-    /store\s+(?:age|edge|h)\s*:?\s*(\d+\s*(?:months?|years?))/gi,
-    "Store age: $1"
-  );
-
-  text = text.replace(
-    /(?:store|website|shop)\s+(?:is\s+)?(?:about|around|roughly|approximately)?\s*(\d+\s*(?:months?|years?))\s+old/gi,
-    "Store age: $1"
-  );
-
-  text = text.replace(
-    /(?:about|around|roughly|approximately)\s*(\d+\s*(?:months?|years?))\s+old/gi,
-    "Store age: $1"
-  );
-
-  text = text.replace(
-    /store\s+(?:age|edge)\s+(?:is|of)?\s*(\d+\s*(?:months?|years?))/gi,
-    "Store age: $1"
-  );
-
-
-  /* ===================================================
-     FACEBOOK AD LIBRARY
-  =================================================== */
-
-  text = text.replace(
-    /facebook\s+(?:at|ad)\s+library(?:\s+the)?/gi,
-    "Facebook Ad Library"
-  );
-
-  text = text.replace(
-    /facebook\s+ads?\s+library/gi,
-    "Facebook Ad Library"
-  );
-
-  text = text.replace(
-    /(?:found|discovered|came\s+across)\s+(?:it\s+)?(?:through|on|via)\s+facebook\s+(?:ad\s+)?library/gi,
-    "Found through: Facebook Ad Library"
-  );
-
-
-  /* ===================================================
-     OFFERS
-  =================================================== */
-
-  text = text.replace(
-    /(?:the\s+)?offer(?:ed)?\s+(?:is\s+)?(?:buy\s+|by\s+)?two\s+get\s+one\s+free/gi,
-    "Offer: Buy 2 Get 1 Free"
-  );
-
-  text = text.replace(
-    /(?:the\s+)?offer(?:ed)?\s+(?:is\s+)?(?:buy\s+|by\s+)?2\s+get\s+1\s+free/gi,
-    "Offer: Buy 2 Get 1 Free"
-  );
-
-  text = text.replace(
-    /(?:deal|promotion|promo)\s*:?\s*(?:buy\s+|by\s+)?two\s+get\s+one\s+free/gi,
-    "Offer: Buy 2 Get 1 Free"
-  );
-
-  text = text.replace(
-    /(?:deal|promotion|promo)\s*:?\s*(?:buy\s+|by\s+)?2\s+get\s+1\s+free/gi,
-    "Offer: Buy 2 Get 1 Free"
-  );
-
-
-  /* ===================================================
-     NOTES
-  =================================================== */
-
-  text = text.replace(
-    /\bnodes?\s+/gi,
-    "Notes: "
-  );
-
-  text = text.replace(
-    /\b(?:note|notes|details|detail|remark|remarks)\s*:?\s*/gi,
-    "Notes: "
-  );
-
-
-  return cleanText(text);
-}
-
-
-/* =====================================================
-   FIELD HELPERS
-===================================================== */
-
-function setField(id, value) {
+  if (!value) {
+    return "";
+  }
+
+  value = value
+    .toString()
+    .replace(/[^\d.,]/g, "");
 
   if (
-    value !== undefined &&
-    value !== null
+    value.includes(",") &&
+    value.includes(".")
   ) {
 
-    value = cleanText(value);
+    value =
+      value.replace(/,/g, "");
 
-    if (value !== "") {
-
-      document.getElementById(id).value =
-        value;
-    }
   }
+
+  else if (
+    value.includes(",")
+  ) {
+
+    value =
+      value.replace(/,/g, "");
+
+  }
+
+  return value;
+
 }
 
 
-function getNumberAfter(pattern, text) {
+/* =====================================================
+   URL EXTRACTION
+===================================================== */
+
+function normalizeUrl(text) {
+
+  if (!text) {
+    return "";
+  }
 
   const match =
-    text.match(pattern);
+    text.match(
+      /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/
+    );
 
   if (!match) {
     return "";
   }
 
-  return normalizeNumber(match[1]);
+  let url =
+    match[1]
+      .replace(/[.,!?]+$/, "");
+
+  if (
+    !url.startsWith("http://") &&
+    !url.startsWith("https://")
+  ) {
+
+    url =
+      "https://" + url;
+
+  }
+
+  return url;
+
 }
 
 
 /* =====================================================
-   MAIN PARSER
+   STRUCTURE SPEECH
 ===================================================== */
 
 function processSpeech() {
 
-  const original =
-    document.getElementById("transcript").value;
+  const text =
+    cleanText(
+      document.getElementById(
+        "transcript"
+      ).value
+    );
 
-  let text =
-    normalizeSpeech(original);
+  if (!text) {
 
-  document.getElementById("transcript").value =
-    text;
+    document.getElementById(
+      "status"
+    ).innerText =
+      "❌ No transcript available.";
+
+    return;
+
+  }
 
 
-  /* ===================================================
-     STORE LINK
-  =================================================== */
+  /*
+     Store Link
+  */
 
-  let urlMatch =
+  const storeMatch =
     text.match(
-      /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/i
+      /(?:store\s*link|website|site|shop)\s*:?\s*([^\s,]+)/i
     );
 
-  if (urlMatch) {
+  if (storeMatch) {
 
-    let url =
-      urlMatch[0]
-        .replace(/[.,!?]$/, "");
+    document.getElementById(
+      "storeLink"
+    ).value =
+      normalizeUrl(storeMatch[1]);
 
-    if (
-      url.startsWith("www.")
-    ) {
-      url =
-        "https://" + url;
-    }
+  }
 
-    setField(
-      "storeLink",
-      url
-    );
+  else {
+
+    document.getElementById(
+      "storeLink"
+    ).value =
+      normalizeUrl(text);
+
   }
 
 
-  /* ===================================================
-     FACEBOOK ADS
-  =================================================== */
+  /*
+     Facebook Ads
+  */
 
-  let facebook =
-    getNumberAfter(
-      /facebook\s+ads?\s+live\s*:?\s*(\d[\d,.]*)/i,
-      text
-    );
-
-  if (!facebook) {
-
-    facebook =
-      getNumberAfter(
-        /facebook\s+live\s+ads?\s*:?\s*(\d[\d,.]*)/i,
-        text
-      );
-  }
-
-  if (!facebook) {
-
-    facebook =
-      getNumberAfter(
-        /(\d[\d,.]*)\s+(?:active|live|running)\s+facebook\s+ads?/i,
-        text
-      );
-  }
-
-  setField(
-    "facebookAds",
-    facebook
-  );
-
-
-  /* ===================================================
-     SIMILARWEB
-  =================================================== */
-
-  let similarWeb =
-    getNumberAfter(
-      /similarweb\s+(?:visits?|visitors?|traffic)\s*:?\s*(\d[\d,.]*)/i,
-      text
-    );
-
-  if (!similarWeb) {
-
-    similarWeb =
-      getNumberAfter(
-        /(?:about|around|roughly|approximately)?\s*(\d[\d,.]*)\s+(?:similarweb\s+)?(?:visits?|visitors?)/i,
-        text
-      );
-  }
-
-  setField(
-    "similarWeb",
-    similarWeb
-  );
-
-
-  /* ===================================================
-     STORE AGE
-  =================================================== */
-
-  let ageMatch =
+  const facebookMatch =
     text.match(
-      /store\s+age\s*:?\s*(\d+\s*(?:months?|years?))/i
+      /(?:facebook\s*(?:live\s*)?ads?|facebook\s*ads?\s*(?:live)?|fb\s*ads?)\D{0,30}(\d[\d,.]*)/i
     );
 
-  if (!ageMatch) {
+  if (facebookMatch) {
 
-    ageMatch =
-      text.match(
-        /(?:store|website|shop)\s+(?:is\s+)?(?:about|around|roughly|approximately)?\s*(\d+\s*(?:months?|years?))\s+old/i
+    document.getElementById(
+      "facebookAds"
+    ).value =
+      normalizeNumber(
+        facebookMatch[1]
       );
+
   }
 
-  if (!ageMatch) {
 
-    ageMatch =
-      text.match(
-        /(?:about|around|roughly|approximately)\s*(\d+\s*(?:months?|years?))\s+old/i
+  /*
+     SimilarWeb
+  */
+
+  const similarMatch =
+    text.match(
+      /(?:similar\s*web|similarweb)[^\d]{0,40}([\d,.]+)/i
+    );
+
+  if (similarMatch) {
+
+    document.getElementById(
+      "similarWeb"
+    ).value =
+      normalizeNumber(
+        similarMatch[1]
       );
+
   }
+
+
+  /*
+     Store Age
+  */
+
+  const ageMatch =
+    text.match(
+      /(?:store\s*age|store\s*is|website\s*is|about)\D{0,30}(\d+(?:\.\d+)?)\s*(months?|years?)/i
+    );
 
   if (ageMatch) {
 
-    setField(
-      "storeAge",
-      ageMatch[1]
-    );
+    document.getElementById(
+      "storeAge"
+    ).value =
+      ageMatch[1] +
+      " " +
+      ageMatch[2];
+
   }
 
 
-  /* ===================================================
-     FOUND THROUGH
-  =================================================== */
+  /*
+     Found Through
+  */
 
-  let foundMatch =
+  const foundMatch =
     text.match(
-      /found\s+through\s*:?\s*(.*?)(?=\s+(?:offer|deal|promotion|promo|notes?|google\s+ads?)\b|$)/i
+      /found\s*(?:through|via)\s*:?\s*(.*?)(?=\s+(?:offer|notes?|google\s*ads?|facebook\s*ads?)\b|$)/i
     );
-
-  if (!foundMatch) {
-
-    foundMatch =
-      text.match(
-        /(?:found|discovered|came\s+across)\s+(?:it\s+)?(?:through|on|via)\s+(.*?)(?=\s+(?:offer|deal|promotion|promo|notes?|google\s+ads?)\b|$)/i
-      );
-  }
 
   if (foundMatch) {
 
-    let found =
-      foundMatch[1]
-        .trim()
-        .replace(/\s+the$/i, "");
+    document.getElementById(
+      "foundThrough"
+    ).value =
+      foundMatch[1].trim();
 
-    if (
-      /facebook.*library/i.test(found)
-    ) {
+  }
 
-      found =
-        "Facebook Ad Library";
-    }
+  else if (
+    /facebook\s*ad\s*library/i.test(text)
+  ) {
 
-    setField(
-      "foundThrough",
-      found
-    );
+    document.getElementById(
+      "foundThrough"
+    ).value =
+      "Facebook Ad Library";
+
   }
 
 
-  /* ===================================================
-     OFFER
-  =================================================== */
+  /*
+     Offer
+  */
 
-  let offerMatch =
+  const offerMatch =
     text.match(
-      /offer\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads?)\b|$)/i
+      /offer\s*:?\s*(.*?)(?=\s+(?:notes?|bijzonderheden|google\s*ads?|facebook\s*ads?)\b|$)/i
     );
-
-  if (!offerMatch) {
-
-    offerMatch =
-      text.match(
-        /(?:deal|promotion|promo)\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads?)\b|$)/i
-      );
-  }
 
   if (offerMatch) {
 
-    let offer =
-      offerMatch[1]
-        .trim()
-        .replace(/^buy\s+/i, "")
-        .replace(/^by\s+/i, "");
+    document.getElementById(
+      "offer"
+    ).value =
+      offerMatch[1].trim();
 
-    if (
-      /two\s+get\s+one\s+free/i.test(offer) ||
-      /2\s+get\s+1\s+free/i.test(offer)
-    ) {
-
-      offer =
-        "Buy 2 Get 1 Free";
-
-    } else {
-
-      offer =
-        offer
-          .replace(
-            /two\s+get\s+one/gi,
-            "2 Get 1"
-          )
-          .replace(
-            /\s+/g,
-            " "
-          );
-    }
-
-    setField(
-      "offer",
-      offer
-    );
   }
 
 
-  /* ===================================================
-     NOTES
-  =================================================== */
+  /*
+     Notes
+  */
 
-  let notesMatch =
+  const notesMatch =
     text.match(
-      /notes?\s*:?\s*(.*?)(?=\s+google\s+ads?\b|$)/i
+      /(?:notes?|bijzonderheden)\s*:?\s*(.*?)(?=\s+(?:google\s*ads?|facebook\s*ads?)\b|$)/i
     );
-
-  if (!notesMatch) {
-
-    notesMatch =
-      text.match(
-        /(?:detail|details|remark|remarks)\s*:?\s*(.*?)(?=\s+google\s+ads?\b|$)/i
-      );
-  }
 
   if (notesMatch) {
 
-    let notes =
-      notesMatch[1]
-        .trim()
-        .replace(
-          /\blending\s+page\b/gi,
-          "landing page"
-        );
+    document.getElementById(
+      "notes"
+    ).value =
+      notesMatch[1].trim();
 
-    setField(
-      "notes",
-      notes
-    );
   }
 
 
-  /* ===================================================
-     GOOGLE ADS
-  =================================================== */
+  /*
+     Google Ads
+  */
 
-  let googleAds =
-    getNumberAfter(
-      /google\s+ads?\s*:?\s*(\d[\d,.]*)/i,
-      text
+  const googleMatch =
+    text.match(
+      /google\s*ads?\D{0,40}(\d[\d,.]*)/i
     );
 
-  if (!googleAds) {
+  if (googleMatch) {
 
-    googleAds =
-      getNumberAfter(
-        /(\d[\d,.]*)\s+(?:active|live|running)?\s*google\s+ads?/i,
-        text
+    document.getElementById(
+      "googleAds"
+    ).value =
+      normalizeNumber(
+        googleMatch[1]
       );
+
   }
 
-  setField(
-    "googleAds",
-    googleAds
-  );
 
+  document.getElementById(
+    "status"
+  ).innerText =
+    "✅ Information structured.";
 
-  document.getElementById("status").innerText =
-    "✅ Information structured. Check the fields before adding.";
 }
 
 
 /* =====================================================
-   SUBMIT TO GOOGLE SHEET
+   SEND TO GOOGLE SHEETS
 ===================================================== */
 
 function submitToSheet() {
 
-  processSpeech();
+  const form =
+    document.createElement("form");
+
+  form.method = "POST";
+
+  form.action = APPS_SCRIPT_URL;
+
+  form.target =
+    "transcriptionFrame";
+
+  form.style.display = "none";
 
 
-  const values = {
+  const fields = {
 
     storeLink:
-      document.getElementById("storeLink").value.trim(),
+      document.getElementById(
+        "storeLink"
+      ).value,
 
     facebookAds:
-      document.getElementById("facebookAds").value.trim(),
+      document.getElementById(
+        "facebookAds"
+      ).value,
 
     similarWeb:
-      document.getElementById("similarWeb").value.trim(),
+      document.getElementById(
+        "similarWeb"
+      ).value,
 
     storeAge:
-      document.getElementById("storeAge").value.trim(),
+      document.getElementById(
+        "storeAge"
+      ).value,
 
     foundThrough:
-      document.getElementById("foundThrough").value.trim(),
+      document.getElementById(
+        "foundThrough"
+      ).value,
 
     offer:
-      document.getElementById("offer").value.trim(),
+      document.getElementById(
+        "offer"
+      ).value,
 
     notes:
-      document.getElementById("notes").value.trim(),
+      document.getElementById(
+        "notes"
+      ).value,
 
     googleAds:
-      document.getElementById("googleAds").value.trim()
+      document.getElementById(
+        "googleAds"
+      ).value
+
   };
 
 
-  /* ===================================================
-     PUT EXACTLY 8 VALUES INTO FORM
-  =================================================== */
+  for (
+    const key in fields
+  ) {
 
-  document.getElementById("formStoreLink").value =
-    values.storeLink;
+    const input =
+      document.createElement("input");
 
-  document.getElementById("formFacebookAds").value =
-    values.facebookAds;
+    input.type = "hidden";
 
-  document.getElementById("formSimilarWeb").value =
-    values.similarWeb;
+    input.name = key;
 
-  document.getElementById("formStoreAge").value =
-    values.storeAge;
+    input.value =
+      fields[key];
 
-  document.getElementById("formFoundThrough").value =
-    values.foundThrough;
+    form.appendChild(input);
 
-  document.getElementById("formOffer").value =
-    values.offer;
-
-  document.getElementById("formNotes").value =
-    values.notes;
-
-  document.getElementById("formGoogleAds").value =
-    values.googleAds;
+  }
 
 
-  const button =
-    document.querySelector(
-      'button[onclick="submitToSheet()"]'
-    );
+  document.body.appendChild(form);
 
-  button.disabled = true;
+  form.submit();
 
-  button.innerText =
-    "⏳ Adding...";
+  form.remove();
 
 
-  document.getElementById("sheetForm").submit();
+  document.getElementById(
+    "status"
+  ).innerText =
+    "✅ Competitor sent to Google Sheet.";
 
-
-  setTimeout(function() {
-
-    document.getElementById("status").innerText =
-      "✅ Competitor added to Google Sheet.";
-
-    button.disabled = false;
-
-    button.innerText =
-      "➕ Add Competitor to Google Sheet";
-
-  }, 1500);
 }
 
 </script>
