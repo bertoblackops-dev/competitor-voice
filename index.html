@@ -221,15 +221,15 @@ async function startListening() {
       try {
         const base64Audio = await blobToBase64(audioBlob);
 
-        const response = await fetch(
-          "https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec"
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              action: "transcribe",
+       const response = await fetch(
+  "https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "transcribe",
               audio: base64Audio,
               mimeType: audioBlob.type
             })
