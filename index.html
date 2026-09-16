@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Competitor Voice</title>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
       max-width: 800px;
@@ -66,97 +73,184 @@
     iframe {
       display: none;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
-<h1>🎤 Competitor Voice</h1>
+  <h1>🎤 Competitor Voice</h1>
 
-<label for="language">Language</label>
 
-<select id="language">
-  <option value="en">English</option>
-  <option value="nl">Dutch</option>
-</select>
+  <label for="language">
+    Language
+  </label>
 
-<br>
+  <select id="language">
 
-<button onclick="startListening()">🎤 Start Speaking</button>
-<button onclick="stopListening()">⏹ Stop Speaking</button>
+    <option value="en">
+      English
+    </option>
 
-<div id="status">Ready.</div>
+    <option value="nl">
+      Dutch
+    </option>
 
-<label for="transcript">Transcript</label>
+  </select>
 
-<textarea
-  id="transcript"
-  placeholder="Your spoken information will appear here..."
-></textarea>
 
-<button onclick="processSpeech()">🧠 Structure Information</button>
+  <br>
 
-<hr>
 
-<div class="field">
-  <label>Store Link</label>
-  <input id="storeLink">
-</div>
+  <button onclick="startListening()">
+    🎤 Start Speaking
+  </button>
 
-<div class="field">
-  <label>Facebook Live Ads Qty</label>
-  <input id="facebookAds">
-</div>
+  <button onclick="stopListening()">
+    ⏹ Stop Speaking
+  </button>
 
-<div class="field">
-  <label>SimilarWeb Visits</label>
-  <input id="similarWeb">
-</div>
 
-<div class="field">
-  <label>Store Age</label>
-  <input id="storeAge">
-</div>
+  <div id="status">
+    Ready.
+  </div>
 
-<div class="field">
-  <label>Found Through</label>
-  <input id="foundThrough">
-</div>
 
-<div class="field">
-  <label>Offer</label>
-  <input id="offer">
-</div>
+  <label for="transcript">
+    Transcript
+  </label>
 
-<div class="field">
-  <label>Notes</label>
-  <input id="notes">
-</div>
+  <textarea
+    id="transcript"
+    placeholder="Your spoken information will appear here..."
+  ></textarea>
 
-<div class="field">
-  <label>Google Ads Qty</label>
-  <input id="googleAds">
-</div>
 
-<button onclick="submitToSheet()">➕ Add Competitor to Google Sheet</button>
+  <button onclick="processSpeech()">
+    🧠 Structure Information
+  </button>
 
-<!-- Hidden communication iframe -->
-<iframe name="transcriptionFrame" id="transcriptionFrame"></iframe>
+
+  <hr>
+
+
+  <div class="field">
+
+    <label>
+      Store Link
+    </label>
+
+    <input id="storeLink">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Facebook Live Ads Qty
+    </label>
+
+    <input id="facebookAds">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      SimilarWeb Visits
+    </label>
+
+    <input id="similarWeb">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Store Age
+    </label>
+
+    <input id="storeAge">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Found Through
+    </label>
+
+    <input id="foundThrough">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Offer
+    </label>
+
+    <input id="offer">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Notes
+    </label>
+
+    <input id="notes">
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Google Ads Qty
+    </label>
+
+    <input id="googleAds">
+
+  </div>
+
+
+  <button onclick="submitToSheet()">
+    ➕ Add Competitor to Google Sheet
+  </button>
+
+
+  <iframe
+    name="transcriptionFrame"
+    id="transcriptionFrame"
+  ></iframe>
+
 
 <script>
+
 
 const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyA-DqzK_YgyLD2ejXM4F8bEYXePJeF3khaOFkNyS6ifWhh9w_eWRAMi24F1lq5A0WH/exec";
 
-const SHEET_NAME = "Sheet1";
 
 let mediaRecorder = null;
+
 let audioChunks = [];
+
 let listening = false;
 
 
 /* =====================================================
-   RECORD AUDIO
+   START RECORDING
 ===================================================== */
 
 async function startListening() {
@@ -168,16 +262,23 @@ async function startListening() {
         audio: true
       });
 
+
     audioChunks = [];
+
 
     mediaRecorder =
       new MediaRecorder(stream);
+
 
     mediaRecorder.ondataavailable =
       function(event) {
 
         if (event.data.size > 0) {
-          audioChunks.push(event.data);
+
+          audioChunks.push(
+            event.data
+          );
+
         }
 
       };
@@ -186,36 +287,37 @@ async function startListening() {
     mediaRecorder.onstop =
       async function() {
 
-        
+        stream
+          .getTracks()
+          .forEach(
+            track => track.stop()
+          );
 
-        stream.getTracks().forEach(
-          track => track.stop()
-        );
 
         const audioBlob =
-          new Blob(audioChunks, {
-            type:
-              mediaRecorder.mimeType ||
-              "audio/webm"
-          });
+          new Blob(
+            audioChunks,
+            {
+              type:
+                mediaRecorder.mimeType ||
+                "audio/webm"
+            }
+          );
 
 
-        document.getElementById("status").innerText =
+        document.getElementById(
+          "status"
+        ).innerText =
           "⏳ Transcribing with AI...";
 
 
         try {
 
           const base64Audio =
-            await blobToBase64(audioBlob);
+            await blobToBase64(
+              audioBlob
+            );
 
-
-          /*
-             Instead of fetch(), submit a normal HTML form
-             to a hidden iframe.
-
-             This avoids the CORS preflight problem.
-          */
 
           submitAudioForTranscription(
             base64Audio,
@@ -226,10 +328,16 @@ async function startListening() {
 
         catch (error) {
 
-          console.error(error);
+          console.error(
+            "Audio processing error:",
+            error
+          );
 
-          document.getElementById("status").innerText =
-            "❌ Transcription failed: " +
+
+          document.getElementById(
+            "status"
+          ).innerText =
+            "❌ Audio processing failed: " +
             error.message;
 
         }
@@ -239,18 +347,28 @@ async function startListening() {
 
     mediaRecorder.start();
 
+
     listening = true;
 
-    document.getElementById("status").innerText =
+
+    document.getElementById(
+      "status"
+    ).innerText =
       "🎤 Recording... Click Stop when finished.";
 
   }
 
   catch (error) {
 
-    console.error(error);
+    console.error(
+      "Microphone error:",
+      error
+    );
 
-    document.getElementById("status").innerText =
+
+    document.getElementById(
+      "status"
+    ).innerText =
       "❌ Microphone error: " +
       error.message;
 
@@ -259,14 +377,25 @@ async function startListening() {
 }
 
 
+/* =====================================================
+   STOP RECORDING
+===================================================== */
+
 function stopListening() {
 
   listening = false;
+
 
   if (
     mediaRecorder &&
     mediaRecorder.state !== "inactive"
   ) {
+
+    document.getElementById(
+      "status"
+    ).innerText =
+      "⏳ Preparing audio...";
+
 
     mediaRecorder.stop();
 
@@ -276,30 +405,52 @@ function stopListening() {
 
 
 /* =====================================================
-   CONVERT AUDIO TO BASE64
+   BLOB → BASE64
 ===================================================== */
 
 function blobToBase64(blob) {
 
   return new Promise(
-    (resolve, reject) => {
+    function(resolve, reject) {
 
       const reader =
         new FileReader();
 
+
       reader.onloadend =
         function() {
 
-          const base64 =
-            reader.result.split(",")[1];
+          try {
 
-          resolve(base64);
+            const base64 =
+              reader.result
+                .split(",")[1];
+
+
+            resolve(base64);
+
+          }
+
+          catch (error) {
+
+            reject(error);
+
+          }
 
         };
 
-      reader.onerror = reject;
 
-      reader.readAsDataURL(blob);
+      reader.onerror =
+        function(error) {
+
+          reject(error);
+
+        };
+
+
+      reader.readAsDataURL(
+        blob
+      );
 
     }
   );
@@ -308,7 +459,7 @@ function blobToBase64(blob) {
 
 
 /* =====================================================
-   SEND AUDIO TO APPS SCRIPT WITHOUT CORS FETCH
+   SEND AUDIO TO APPS SCRIPT
 ===================================================== */
 
 function submitAudioForTranscription(
@@ -316,66 +467,113 @@ function submitAudioForTranscription(
   mimeType
 ) {
 
-  const form =
-    document.createElement("form");
+  try {
 
-  form.method = "POST";
-
-  form.action = APPS_SCRIPT_URL;
-
-  form.target = "transcriptionFrame";
-
-  form.style.display = "none";
+    const form =
+      document.createElement(
+        "form"
+      );
 
 
-  const action =
-    document.createElement("input");
+    form.method = "POST";
 
-  action.type = "hidden";
+    form.action =
+      APPS_SCRIPT_URL;
 
-  action.name = "action";
+    form.target =
+      "transcriptionFrame";
 
-  action.value = "transcribe";
-
-
-  const audio =
-    document.createElement("input");
-
-  audio.type = "hidden";
-
-  audio.name = "audio";
-
-  audio.value = base64Audio;
+    form.style.display =
+      "none";
 
 
-  const mime =
-    document.createElement("input");
+    const action =
+      document.createElement(
+        "input"
+      );
 
-  mime.type = "hidden";
+    action.type = "hidden";
 
-  mime.name = "mimeType";
+    action.name = "action";
 
-  mime.value = mimeType;
-
-
-  form.appendChild(action);
-
-  form.appendChild(audio);
-
-  form.appendChild(mime);
+    action.value =
+      "transcribe";
 
 
-  document.body.appendChild(form);
+    const audio =
+      document.createElement(
+        "input"
+      );
 
-  form.submit();
+    audio.type = "hidden";
 
-  form.remove();
+    audio.name = "audio";
+
+    audio.value =
+      base64Audio;
+
+
+    const mime =
+      document.createElement(
+        "input"
+      );
+
+    mime.type = "hidden";
+
+    mime.name = "mimeType";
+
+    mime.value =
+      mimeType ||
+      "audio/webm";
+
+
+    form.appendChild(
+      action
+    );
+
+    form.appendChild(
+      audio
+    );
+
+    form.appendChild(
+      mime
+    );
+
+
+    document.body.appendChild(
+      form
+    );
+
+
+    form.submit();
+
+
+    form.remove();
+
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Submission error:",
+      error
+    );
+
+
+    document.getElementById(
+      "status"
+    ).innerText =
+      "❌ Could not send audio: " +
+      error.message;
+
+  }
 
 }
 
 
 /* =====================================================
-   RECEIVE TRANSCRIPTION FROM APPS SCRIPT
+   RECEIVE TRANSCRIPTION
 ===================================================== */
 
 window.addEventListener(
@@ -385,6 +583,7 @@ window.addEventListener(
     if (!event.data) {
       return;
     }
+
 
     if (
       event.data.type ===
@@ -400,6 +599,7 @@ window.addEventListener(
           event.data.error;
 
         return;
+
       }
 
 
@@ -407,10 +607,30 @@ window.addEventListener(
         event.data.text || "";
 
 
-      document.getElementById(
-        "transcript"
-      ).value +=
-        text + " ";
+      if (!text) {
+
+        document.getElementById(
+          "status"
+        ).innerText =
+          "⚠️ AI returned an empty transcription.";
+
+        return;
+
+      }
+
+
+      const transcript =
+        document.getElementById(
+          "transcript"
+        );
+
+
+      transcript.value =
+        transcript.value
+          ? transcript.value +
+            " " +
+            text
+          : text;
 
 
       document.getElementById(
@@ -438,7 +658,7 @@ function cleanText(text) {
 
 
 /* =====================================================
-   NUMBER NORMALIZATION
+   NORMALIZE NUMBERS
 ===================================================== */
 
 function normalizeNumber(value) {
@@ -447,9 +667,12 @@ function normalizeNumber(value) {
     return "";
   }
 
-  value = value
-    .toString()
-    .replace(/[^\d.,]/g, "");
+
+  value =
+    value
+      .toString()
+      .replace(/[^\d.,]/g, "");
+
 
   if (
     value.includes(",") &&
@@ -470,13 +693,14 @@ function normalizeNumber(value) {
 
   }
 
+
   return value;
 
 }
 
 
 /* =====================================================
-   URL EXTRACTION
+   NORMALIZE URL
 ===================================================== */
 
 function normalizeUrl(text) {
@@ -485,18 +709,22 @@ function normalizeUrl(text) {
     return "";
   }
 
+
   const match =
     text.match(
       /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/
     );
 
+
   if (!match) {
     return "";
   }
 
+
   let url =
     match[1]
       .replace(/[.,!?]+$/, "");
+
 
   if (
     !url.startsWith("http://") &&
@@ -508,13 +736,14 @@ function normalizeUrl(text) {
 
   }
 
+
   return url;
 
 }
 
 
 /* =====================================================
-   STRUCTURE SPEECH
+   STRUCTURE INFORMATION
 ===================================================== */
 
 function processSpeech() {
@@ -525,6 +754,7 @@ function processSpeech() {
         "transcript"
       ).value
     );
+
 
   if (!text) {
 
@@ -538,21 +768,22 @@ function processSpeech() {
   }
 
 
-  /*
-     Store Link
-  */
+  /* STORE LINK */
 
   const storeMatch =
     text.match(
       /(?:store\s*link|website|site|shop)\s*:?\s*([^\s,]+)/i
     );
 
+
   if (storeMatch) {
 
     document.getElementById(
       "storeLink"
     ).value =
-      normalizeUrl(storeMatch[1]);
+      normalizeUrl(
+        storeMatch[1]
+      );
 
   }
 
@@ -561,19 +792,20 @@ function processSpeech() {
     document.getElementById(
       "storeLink"
     ).value =
-      normalizeUrl(text);
+      normalizeUrl(
+        text
+      );
 
   }
 
 
-  /*
-     Facebook Ads
-  */
+  /* FACEBOOK ADS */
 
   const facebookMatch =
     text.match(
       /(?:facebook\s*(?:live\s*)?ads?|facebook\s*ads?\s*(?:live)?|fb\s*ads?)\D{0,30}(\d[\d,.]*)/i
     );
+
 
   if (facebookMatch) {
 
@@ -587,14 +819,13 @@ function processSpeech() {
   }
 
 
-  /*
-     SimilarWeb
-  */
+  /* SIMILARWEB */
 
   const similarMatch =
     text.match(
       /(?:similar\s*web|similarweb)[^\d]{0,40}([\d,.]+)/i
     );
+
 
   if (similarMatch) {
 
@@ -608,14 +839,13 @@ function processSpeech() {
   }
 
 
-  /*
-     Store Age
-  */
+  /* STORE AGE */
 
   const ageMatch =
     text.match(
       /(?:store\s*age|store\s*is|website\s*is|about)\D{0,30}(\d+(?:\.\d+)?)\s*(months?|years?)/i
     );
+
 
   if (ageMatch) {
 
@@ -629,14 +859,13 @@ function processSpeech() {
   }
 
 
-  /*
-     Found Through
-  */
+  /* FOUND THROUGH */
 
   const foundMatch =
     text.match(
       /found\s*(?:through|via)\s*:?\s*(.*?)(?=\s+(?:offer|notes?|google\s*ads?|facebook\s*ads?)\b|$)/i
     );
+
 
   if (foundMatch) {
 
@@ -648,7 +877,9 @@ function processSpeech() {
   }
 
   else if (
-    /facebook\s*ad\s*library/i.test(text)
+    /facebook\s*ad\s*library/i.test(
+      text
+    )
   ) {
 
     document.getElementById(
@@ -659,14 +890,13 @@ function processSpeech() {
   }
 
 
-  /*
-     Offer
-  */
+  /* OFFER */
 
   const offerMatch =
     text.match(
       /offer\s*:?\s*(.*?)(?=\s+(?:notes?|bijzonderheden|google\s*ads?|facebook\s*ads?)\b|$)/i
     );
+
 
   if (offerMatch) {
 
@@ -678,14 +908,13 @@ function processSpeech() {
   }
 
 
-  /*
-     Notes
-  */
+  /* NOTES */
 
   const notesMatch =
     text.match(
       /(?:notes?|bijzonderheden)\s*:?\s*(.*?)(?=\s+(?:google\s*ads?|facebook\s*ads?)\b|$)/i
     );
+
 
   if (notesMatch) {
 
@@ -697,14 +926,13 @@ function processSpeech() {
   }
 
 
-  /*
-     Google Ads
-  */
+  /* GOOGLE ADS */
 
   const googleMatch =
     text.match(
       /google\s*ads?\D{0,40}(\d[\d,.]*)/i
     );
+
 
   if (googleMatch) {
 
@@ -732,98 +960,135 @@ function processSpeech() {
 
 function submitToSheet() {
 
-  const form =
-    document.createElement("form");
+  try {
 
-  form.method = "POST";
-
-  form.action = APPS_SCRIPT_URL;
-
-  form.target =
-    "transcriptionFrame";
-
-  form.style.display = "none";
+    const form =
+      document.createElement(
+        "form"
+      );
 
 
-  const fields = {
+    form.method = "POST";
 
-    storeLink:
-      document.getElementById(
-        "storeLink"
-      ).value,
+    form.action =
+      APPS_SCRIPT_URL;
 
-    facebookAds:
-      document.getElementById(
-        "facebookAds"
-      ).value,
+    form.target =
+      "transcriptionFrame";
 
-    similarWeb:
-      document.getElementById(
-        "similarWeb"
-      ).value,
-
-    storeAge:
-      document.getElementById(
-        "storeAge"
-      ).value,
-
-    foundThrough:
-      document.getElementById(
-        "foundThrough"
-      ).value,
-
-    offer:
-      document.getElementById(
-        "offer"
-      ).value,
-
-    notes:
-      document.getElementById(
-        "notes"
-      ).value,
-
-    googleAds:
-      document.getElementById(
-        "googleAds"
-      ).value
-
-  };
+    form.style.display =
+      "none";
 
 
-  for (
-    const key in fields
-  ) {
+    const fields = {
 
-    const input =
-      document.createElement("input");
+      storeLink:
+        document.getElementById(
+          "storeLink"
+        ).value,
 
-    input.type = "hidden";
+      facebookAds:
+        document.getElementById(
+          "facebookAds"
+        ).value,
 
-    input.name = key;
+      similarWeb:
+        document.getElementById(
+          "similarWeb"
+        ).value,
 
-    input.value =
-      fields[key];
+      storeAge:
+        document.getElementById(
+          "storeAge"
+        ).value,
 
-    form.appendChild(input);
+      foundThrough:
+        document.getElementById(
+          "foundThrough"
+        ).value,
+
+      offer:
+        document.getElementById(
+          "offer"
+        ).value,
+
+      notes:
+        document.getElementById(
+          "notes"
+        ).value,
+
+      googleAds:
+        document.getElementById(
+          "googleAds"
+        ).value
+
+    };
+
+
+    for (
+      const key in fields
+    ) {
+
+      const input =
+        document.createElement(
+          "input"
+        );
+
+
+      input.type = "hidden";
+
+      input.name = key;
+
+      input.value =
+        fields[key];
+
+
+      form.appendChild(
+        input
+      );
+
+    }
+
+
+    document.body.appendChild(
+      form
+    );
+
+
+    form.submit();
+
+
+    form.remove();
+
+
+    document.getElementById(
+      "status"
+    ).innerText =
+      "✅ Competitor sent to Google Sheet.";
 
   }
 
+  catch (error) {
 
-  document.body.appendChild(form);
+    console.error(
+      "Sheet submission error:",
+      error
+    );
 
-  form.submit();
 
-  form.remove();
+    document.getElementById(
+      "status"
+    ).innerText =
+      "❌ Could not send to Google Sheet: " +
+      error.message;
 
-
-  document.getElementById(
-    "status"
-  ).innerText =
-    "✅ Competitor sent to Google Sheet.";
+  }
 
 }
+
 
 </script>
 
 </body>
+
 </html>
