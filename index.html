@@ -8,39 +8,50 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 700px;
+      max-width: 760px;
       margin: 40px auto;
       padding: 20px;
+      line-height: 1.4;
     }
 
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     button {
       padding: 12px 18px;
       font-size: 16px;
       cursor: pointer;
-      margin: 5px 5px 5px 0;
+      margin: 6px 6px 6px 0;
+      border-radius: 6px;
+      border: 1px solid #999;
     }
 
     textarea {
       width: 100%;
-      min-height: 180px;
+      min-height: 170px;
       margin-top: 15px;
       padding: 12px;
       font-size: 16px;
       box-sizing: border-box;
+      border-radius: 6px;
+    }
+
+    #structured {
+      margin-top: 25px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
 
     .field {
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .field label {
       display: block;
       font-weight: bold;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     .field input {
@@ -48,18 +59,18 @@
       padding: 10px;
       box-sizing: border-box;
       font-size: 15px;
-    }
-
-    #structured {
-      margin-top: 25px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
     }
 
     #status {
-      margin-top: 15px;
+      margin-top: 18px;
       font-weight: bold;
+    }
+
+    .hint {
+      color: #666;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -67,6 +78,10 @@
 <body>
 
 <h1>🎤 Competitor Voice</h1>
+
+<p class="hint">
+  Speak your competitor information naturally. Check the fields before adding it to Google Sheets.
+</p>
 
 <label>
   Language:
@@ -81,7 +96,10 @@
 <button onclick="startListening()">🎤 Start Speaking</button>
 <button onclick="stopListening()">⏹ Stop</button>
 
-<textarea id="transcript" placeholder="Your speech will appear here..."></textarea>
+<textarea
+  id="transcript"
+  placeholder="Your speech will appear here..."
+></textarea>
 
 <div id="structured">
 
@@ -130,13 +148,20 @@
   <br>
 
   <button onclick="processSpeech()">🔄 Structure Information</button>
-  <button onclick="submitToSheet()">➕ Add Competitor to Google Sheet</button>
+
+  <button onclick="submitToSheet()">
+    ➕ Add Competitor to Google Sheet
+  </button>
 
   <div id="status"></div>
 
 </div>
 
-<iframe name="submitFrame" style="display:none;"></iframe>
+<iframe
+  name="submitFrame"
+  id="submitFrame"
+  style="display:none;"
+></iframe>
 
 <form
   id="sheetForm"
@@ -159,8 +184,13 @@
 
 <script>
 
-let recognition;
+let recognition = null;
 let listening = false;
+
+
+/* =========================
+   SPEECH RECOGNITION
+========================= */
 
 function startListening() {
 
@@ -183,32 +213,55 @@ function startListening() {
 
   recognition.onresult = function(event) {
 
-    let text = "";
+    let newText = "";
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      text += event.results[i][0].transcript + " ";
+    for (
+      let i = event.resultIndex;
+      i < event.results.length;
+      i++
+    ) {
+
+      if (event.results[i].isFinal) {
+        newText +=
+          event.results[i][0].transcript + " ";
+      }
+
     }
 
-    const box = document.getElementById("transcript");
+    const box =
+      document.getElementById("transcript");
 
-    box.value += text;
-
+    box.value += newText;
   };
 
   recognition.onerror = function(event) {
-    console.log("Speech recognition error:", event.error);
+
+    console.log(
+      "Speech recognition error:",
+      event.error
+    );
   };
 
   recognition.onend = function() {
+
     if (listening) {
+
       try {
         recognition.start();
-      } catch(e) {}
+      } catch (error) {
+        console.log(error);
+      }
+
     }
   };
 
   listening = true;
-  recognition.start();
+
+  try {
+    recognition.start();
+  } catch (error) {
+    console.log(error);
+  }
 
   document.getElementById("status").innerText =
     "🎤 Listening...";
@@ -230,6 +283,10 @@ function stopListening() {
 }
 
 
+/* =========================
+   BASIC CLEANING
+========================= */
+
 function cleanText(text) {
 
   return text
@@ -238,198 +295,340 @@ function cleanText(text) {
 }
 
 
+/* =========================
+   SPEECH NORMALIZATION
+========================= */
+
 function normalizeSpeech(text) {
 
   text = cleanText(text);
 
-  // URL correction
+
+  /* URL */
+
   text = text.replace(
     /\bhttps?\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
     "https://$1"
   );
+
 
   text = text.replace(
     /\bhttps\s+([a-z0-9.-]+\.[a-z]{2,})/gi,
     "https://$1"
   );
 
-  // Common speech-recognition errors
+
+  /* FACEBOOK ADS */
+
   text = text.replace(
-    /facebook\s+ads\s*live\s*(\d+)/gi,
+    /facebook\s+ads?\s*live\s*(\d[\d,.]*)/gi,
     "Facebook ads live: $1"
   );
+
+  text = text.replace(
+    /facebook\s+adslive\s*(\d[\d,.]*)/gi,
+    "Facebook ads live: $1"
+  );
+
+
+  /* SIMILARWEB */
 
   text = text.replace(
     /similar\s*web\s+visitors?\s*([\d,.]+)/gi,
     "SimilarWeb visitors: $1"
   );
 
+
+  /* STORE AGE */
+
   text = text.replace(
-    /store\s+(?:h|age)\s*(\d+\s*(?:months?|years?))/gi,
+    /store\s+(?:age|edge|h)\s*(\d+\s*(?:months?|years?))/gi,
     "Store age: $1"
   );
 
+
+  /* FACEBOOK AD LIBRARY */
+
   text = text.replace(
-    /facebook\s+(?:at|ad)\s+library/gi,
+    /facebook\s+(?:at|ad)\s+library(?:\s+the)?/gi,
     "Facebook Ad Library"
   );
 
+
+  /* OFFER */
+
   text = text.replace(
-    /offered\s+by\s+two\s+get\s+one\s+free/gi,
-    "Buy 2 Get 1 Free"
+    /(?:the\s+)?offer(?:ed)?\s+by\s+two\s+get\s+one\s+free/gi,
+    "Offer: Buy 2 Get 1 Free"
   );
 
   text = text.replace(
-    /nodes?\s+(.*?)(?=\s+google\s+ads\b|$)/gi,
-    "Notes: $1"
+    /(?:the\s+)?offer(?:ed)?\s*:?\s*two\s+get\s+one\s+free/gi,
+    "Offer: Buy 2 Get 1 Free"
   );
+
+  text = text.replace(
+    /(?:the\s+)?offer(?:ed)?\s*:?\s*by\s+two\s+get\s+one\s+free/gi,
+    "Offer: Buy 2 Get 1 Free"
+  );
+
+
+  /* NOTES */
+
+  text = text.replace(
+    /\bnodes?\s+/gi,
+    "Notes: "
+  );
+
+
+  /* COMMON SPEECH ERRORS */
+
+  text = text.replace(
+    /\bgood\s+lending\s+page\b/gi,
+    "good landing page"
+  );
+
 
   return text;
 }
 
 
-function extractNumber(text) {
-
-  const match = text.match(/(\d[\d,.]*)/);
-
-  if (!match) return "";
-
-  return match[1].replace(/,/g, "");
-}
-
+/* =========================
+   STRUCTURE THE SPEECH
+========================= */
 
 function processSpeech() {
 
-  let text = document.getElementById("transcript").value;
+  let text =
+    document.getElementById("transcript").value;
 
   text = normalizeSpeech(text);
 
-  document.getElementById("transcript").value = text;
+  document.getElementById("transcript").value =
+    text;
 
-  // Store link
+
+  /* STORE LINK */
+
   let match = text.match(
     /https?:\/\/[^\s]+/i
   );
 
   if (match) {
+
     document.getElementById("storeLink").value =
       match[0].replace(/[.,]$/, "");
   }
 
-  // Facebook ads
+
+  /* FACEBOOK ADS */
+
   match = text.match(
-    /facebook\s+ads\s*live\s*:?\s*(\d[\d,.]*)/i
+    /facebook\s+ads?\s*live\s*:?\s*(\d[\d,.]*)/i
   );
 
   if (match) {
+
     document.getElementById("facebookAds").value =
       match[1].replace(/,/g, "");
   }
 
-  // SimilarWeb
+
+  /* SIMILARWEB */
+
   match = text.match(
     /similarweb\s+visitors\s*:?\s*(\d[\d,.]*)/i
   );
 
   if (match) {
+
     document.getElementById("similarWeb").value =
       match[1].replace(/,/g, "");
   }
 
-  // Store age
+
+  /* STORE AGE */
+
   match = text.match(
-    /store\s+age\s*:?\s*([^,.;]+?(?:months?|years?))/i
+    /store\s+age\s*:?\s*(\d+\s*(?:months?|years?))/i
   );
 
   if (match) {
+
     document.getElementById("storeAge").value =
       match[1].trim();
   }
 
-  // Found through
+
+  /* FOUND THROUGH */
+
   match = text.match(
     /found\s+through\s*:?\s*(.*?)(?=\s+(?:offer|notes?|google\s+ads)\b|$)/i
   );
 
   if (match) {
+
+    let found = match[1].trim();
+
+    found = found.replace(
+      /\s+the$/i,
+      ""
+    );
+
+    found = found.replace(
+      /facebook\s+(?:at|ad)\s+library/i,
+      "Facebook Ad Library"
+    );
+
     document.getElementById("foundThrough").value =
-      match[1].trim();
+      found;
   }
 
-  // Offer
+
+  /* OFFER */
+
   match = text.match(
-    /offer(?:ed)?\s*(?:by)?\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads)\b|$)/i
+    /offer\s*:?\s*(.*?)(?=\s+(?:notes?|google\s+ads)\b|$)/i
   );
 
   if (match) {
-    let offer = match[1].trim();
 
-    offer = offer
-      .replace(/two\s+get\s+one/gi, "Buy 2 Get 1")
-      .replace(/2\s+get\s+1/gi, "Buy 2 Get 1");
+    let offer =
+      match[1].trim();
 
-    document.getElementById("offer").value =
-      offer;
+    offer = offer.replace(
+      /^buy\s+/i,
+      ""
+    );
+
+    offer = offer.replace(
+      /two\s+get\s+one/gi,
+      "2 Get 1"
+    );
+
+    offer = offer.replace(
+      /2\s+get\s+1/gi,
+      "2 Get 1"
+    );
+
+    offer = offer.replace(
+      /\s+/g,
+      " "
+    );
+
+    if (/2\s+get\s+1/i.test(offer)) {
+
+      document.getElementById("offer").value =
+        "Buy 2 Get 1 Free";
+
+    } else {
+
+      document.getElementById("offer").value =
+        offer;
+    }
   }
 
-  // Notes
+
+  /* NOTES */
+
   match = text.match(
     /notes?\s*:?\s*(.*?)(?=\s+google\s+ads\b|$)/i
   );
 
   if (match) {
-    document.getElementById("notes").value =
+
+    let notes =
       match[1].trim();
+
+    notes = notes.replace(
+      /\blending\s+page\b/gi,
+      "landing page"
+    );
+
+    document.getElementById("notes").value =
+      notes;
   }
 
-  // Google ads
+
+  /* GOOGLE ADS */
+
   match = text.match(
     /google\s+ads\s*:?\s*(\d[\d,.]*)/i
   );
 
   if (match) {
+
     document.getElementById("googleAds").value =
       match[1].replace(/,/g, "");
   }
+
 
   document.getElementById("status").innerText =
     "✅ Information structured. Check the fields above.";
 }
 
 
+/* =========================
+   SEND EXACTLY ONE ROW
+========================= */
+
 function submitToSheet() {
 
-  // Make sure the latest speech is processed first
   processSpeech();
 
+
   document.getElementById("formStoreLink").value =
-    document.getElementById("storeLink").value;
+    document.getElementById("storeLink").value.trim();
 
   document.getElementById("formFacebookAds").value =
-    document.getElementById("facebookAds").value;
+    document.getElementById("facebookAds").value.trim();
 
   document.getElementById("formSimilarWeb").value =
-    document.getElementById("similarWeb").value;
+    document.getElementById("similarWeb").value.trim();
 
   document.getElementById("formStoreAge").value =
-    document.getElementById("storeAge").value;
+    document.getElementById("storeAge").value.trim();
 
   document.getElementById("formFoundThrough").value =
-    document.getElementById("foundThrough").value;
+    document.getElementById("foundThrough").value.trim();
 
   document.getElementById("formOffer").value =
-    document.getElementById("offer").value;
+    document.getElementById("offer").value.trim();
 
   document.getElementById("formNotes").value =
-    document.getElementById("notes").value;
+    document.getElementById("notes").value.trim();
 
   document.getElementById("formGoogleAds").value =
-    document.getElementById("googleAds").value;
+    document.getElementById("googleAds").value.trim();
+
+
+  /* Prevent accidental double-click */
+
+  const button =
+    document.querySelector(
+      'button[onclick="submitToSheet()"]'
+    );
+
+  button.disabled = true;
+
+  button.innerText =
+    "⏳ Adding...";
+
 
   document.getElementById("sheetForm").submit();
 
-  document.getElementById("status").innerText =
-    "✅ Competitor sent to Google Sheet.";
+
+  setTimeout(function() {
+
+    document.getElementById("status").innerText =
+      "✅ Competitor sent to Google Sheet.";
+
+    button.disabled = false;
+
+    button.innerText =
+      "➕ Add Competitor to Google Sheet";
+
+  }, 1500);
 }
 
 </script>
